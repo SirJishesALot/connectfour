@@ -13,10 +13,6 @@ macro_rules! print_flush {
     };
 }
 
-fn within_bounds(col:usize, col_size: usize) -> bool {
-    col > 0 && col <= col_size
-}
-
 fn display_menu() {
     println!("Welcome to connect four!"); 
     println!("Select the game mode you'd like to play:");
@@ -108,7 +104,7 @@ fn main() {
     
                 match col_string.trim().parse::<usize>() {
                     Ok(col) => {
-                        if within_bounds(col, dim_cols) && game.is_valid(col - 1) {
+                        if col > 0 && game.is_valid(col - 1) {
                             break col;
                         } else {
                             println!("Please enter a valid column number."); 

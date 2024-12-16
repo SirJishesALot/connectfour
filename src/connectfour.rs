@@ -130,6 +130,6 @@ impl ConnectFour {
     }
 
     pub fn is_valid(&self, col: usize) -> bool {
-        self.board[0][col] == Mark::Empty
+        col < self.dim_cols && self.board[0][col] == Mark::Empty
     }
 }
