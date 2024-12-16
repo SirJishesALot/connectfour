@@ -14,8 +14,6 @@ impl std::fmt::Display for Mark {
     }
 }
 
-
-
 impl Clone for Mark {
     fn clone(&self) -> Self {
         match self {
@@ -28,7 +26,7 @@ impl Clone for Mark {
 }
 
 impl Mark {
-    fn toggle(&mut self) {
+    fn make_win(&mut self) {
         *self = match self {
             _ => Mark::Win(Box::new(self.clone()))
         };
@@ -36,64 +34,69 @@ impl Mark {
 }
 
 pub struct ConnectFour {
-    board: [[Mark; 7]; 6]
+    dim_rows: usize, 
+    dim_cols: usize, 
+    seq: usize, 
+    board: Vec<Vec<Mark>>,
 }
 
 impl ConnectFour {
-    pub fn new() -> Self {
+    pub fn new(dim_rows: usize, dim_cols: usize, seq: usize) -> Self {
         ConnectFour {
-            board: [ // initialise to 6x7 of empty
-                [Mark::Empty, Mark::Empty, Mark::Empty, Mark::Empty, Mark::Empty, Mark::Empty, Mark::Empty], 
-                [Mark::Empty, Mark::Empty, Mark::Empty, Mark::Empty, Mark::Empty, Mark::Empty, Mark::Empty], 
-                [Mark::Empty, Mark::Empty, Mark::Empty, Mark::Empty, Mark::Empty, Mark::Empty, Mark::Empty], 
-                [Mark::Empty, Mark::Empty, Mark::Empty, Mark::Empty, Mark::Empty, Mark::Empty, Mark::Empty], 
-                [Mark::Empty, Mark::Empty, Mark::Empty, Mark::Empty, Mark::Empty, Mark::Empty, Mark::Empty], 
-                [Mark::Empty, Mark::Empty, Mark::Empty, Mark::Empty, Mark::Empty, Mark::Empty, Mark::Empty]
-            ]
+            dim_rows,
+            dim_cols, 
+            seq, 
+            board: vec![vec![Mark::Empty; dim_cols]; dim_rows],
         }
+    }
+
+    fn print_col_nums(col_size: usize) {
+        for col in 1..=col_size {
+            print!(" {}", col);
+        }
+        print!("\n");
     }
 
     pub fn display_board(&self) {
-        println!(" 1 2 3 4 5 6 7");
-        for i in 0..6 {
+        Self::print_col_nums(self.dim_cols); 
+        for i in 0..self.dim_rows {
             print!("|");
-            for j in 0..6 {
+            for j in 0..self.dim_cols - 1 {
                 print!("{} ", self.board[i][j]); 
             }
-            print!("{}|\n", self.board[i][6]); 
+            print!("{}|\n", self.board[i][self.dim_cols - 1]); 
         }
-        println!(" 1 2 3 4 5 6 7");
+        Self::print_col_nums(self.dim_cols); 
     }
 
     fn is_vertical_match(&mut self, row: usize, col: usize, mark: &Mark) -> bool {
-        if (0..4).all(|offset| self.board[row + offset][col] == *mark) {
-            (0..4).for_each(|offset| self.board[row + offset][col].toggle()); 
+        if (0..self.seq).all(|offset| self.board[row + offset][col] == *mark) {
+            (0..self.seq).for_each(|offset| self.board[row + offset][col].make_win()); 
             return true; 
         } false
     }
 
     fn check_cols(&mut self, mark: &Mark) -> bool {
-        for col in 0..7 {
-            for row in 0..3 {
+        for col in 0..self.dim_cols {
+            for row in 0..=(self.dim_rows - self.seq) {
                 if Self::is_vertical_match(self, row, col, mark) { return true; }
             }
         } false 
     }
 
     fn check_diagonals(&mut self, mark: &Mark) -> bool {
-        for row in 0..3 {
-            for shift in 0..4 {
-                let diagonal: bool = {
-                    (0..4).all(|offset| self.board[row + offset][shift + (3-offset)] == *mark)
-                };
-                let antidiagonal: bool = {
-                    (0..4).all(|offset| self.board[row + offset][6 - (shift + (3-offset))] == *mark)
-                };
+        let bound = self.seq - 1; 
+        for row in 0..=(self.dim_rows - self.seq) {
+            for shift in 0..=(self.dim_cols - self.seq) {
+                let diagonal: bool = 
+                    (0..self.seq).all(|offset| self.board[row + offset][shift + (bound-offset)] == *mark);
+                let antidiagonal: bool = 
+                    (0..self.seq).all(|offset| self.board[row + offset][(self.dim_cols-1) - (shift + (bound-offset))] == *mark);
 
                 if diagonal || antidiagonal { 
-                    let _ = (0..4).for_each(|offset| {
-                        let col = if antidiagonal { 6 - (shift + (3-offset)) } else { shift + (3-offset) };
-                        self.board[row + offset][col].toggle()
+                    (0..self.seq).for_each(|offset| {
+                        let col = if antidiagonal { (self.dim_cols-1) - (shift + (bound-offset)) } else { shift + (bound-offset) };
+                        self.board[row + offset][col].make_win()
                     });
                     return true; 
                 }
@@ -103,22 +106,21 @@ impl ConnectFour {
     }
 
     pub fn check_win(&mut self, mark: Mark) -> bool {
-        for row in 0..6 { // rows
-            for i in 0..4 {
-                if self.board[row][i..i+4].iter().all(|x| x == &mark) {
-                    self.board[row][i..i+4].iter_mut().for_each(|x| x.toggle());
+        for row in 0..self.dim_rows { // rows
+            for i in 0..=(self.dim_cols - self.seq) {
+                if self.board[row][i..i+self.seq].iter().all(|x| x == &mark) {
+                    self.board[row][i..i+self.seq].iter_mut().for_each(|x| x.make_win());
                     return true;
                 }
             }
         }
-
         Self::check_cols(self, &mark) || Self::check_diagonals(self, &mark)
     }
 
     pub fn update_board(&mut self, col: usize, mark: Mark)  {
-        let mut row: usize = 5; 
+        let mut row: usize = self.dim_rows - 1; 
 
-        for i in 0..5 {
+        for i in 0..(self.dim_rows - 1) {
             if self.board[i + 1][col] != Mark::Empty {
                 row = i; 
                 break; 

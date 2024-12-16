@@ -13,6 +13,17 @@ macro_rules! print_flush {
     };
 }
 
+fn within_bounds(col:usize, col_size: usize) -> bool {
+    col > 0 && col <= col_size
+}
+
+fn display_menu() {
+    println!("Welcome to connect four!"); 
+    println!("Select the game mode you'd like to play:");
+    println!("  1. Original. (6x7 grid. Connect 4 tokens to win)"); 
+    println!("  2. Custom. (Select your own grid size and required number of connected tokens to win)"); 
+}
+
 fn clear_screen() {
     use std::io::Write;
     print!("{}", clear::All); 
@@ -22,43 +33,68 @@ fn clear_screen() {
 
 fn get_dimensions() -> (usize, usize) {
     use std::io; 
-    let dim_m: usize = loop {
-        print_flush!("Enter the number of rows: "); 
+    let dim_rows: usize = loop {
+        print_flush!("Number of rows: "); 
         let mut dim_m_string = String::new(); 
         io::stdin().read_line(&mut dim_m_string).expect("Failed to read line.");
 
         match dim_m_string.trim().parse::<usize>() {
-            Ok(m) => {
-                if m > 2 { break m; } 
-                else { println!("Minimum 3 rows required."); }
-            }, 
+            Ok(m) if m > 2 => break m,
+            Ok(_) => println!("Minimum 3 rows required."), 
             Err(_) => println!("Please enter a valid number."),
         }
     };
 
-    let dim_n: usize = loop {
-        print_flush!("Enter the number of columns: ");
+    let dim_cols: usize = loop {
+        print_flush!("Number of columns: ");
         let mut dim_n_string = String::new(); 
         io::stdin().read_line(&mut dim_n_string).expect("Failed to read line."); 
 
         match dim_n_string.trim().parse::<usize>() {
-            Ok(n) => {
-                if n > 2 { break n; }
-                else { println!("Minimum 3 columns required."); }
-            }
+            Ok(n) if n > 2  => break n, 
+            Ok(_) => println!("Minimum 3 columns required."), 
             Err(_) => println!("Please enter a valid number."),
         }
     };
-    (dim_m, dim_n)
+    (dim_rows, dim_cols)
 }
 
 fn main() {
     use std::io; 
 
     'main: loop {
+        clear_screen();
+        display_menu();
+
+        let mode: u8 = loop{
+            let mut mode_string = String::new(); 
+            io::stdin().read_line(&mut mode_string).expect("Failed to read line."); 
+
+            match mode_string.trim().parse::<u8>() {
+                Ok(choice) if choice == 1 || choice == 2 => break choice, 
+                Ok(_) | Err(_) => println!("Please choose a valid option."),
+            }
+        };
+
+        let (dim_rows, dim_cols) = if mode == 1 { (6, 7) } else { get_dimensions() };
+        let seq: usize = if mode == 1 { 4 } else {
+            loop { 
+                print_flush!("Number of tokens to be connected: "); 
+                let mut seq_string = String::new(); 
+                io::stdin().read_line(&mut seq_string).expect("Failed to read line."); 
+
+                match seq_string.trim().parse::<usize>() {
+                    Ok(seq) if seq < 3 => println!("Sequence size must be at least 3."), 
+                    Ok(seq) if seq <= dim_rows && seq <= dim_cols => break seq, 
+                    Ok(_) => println!("Sequence size cannot be more than the grid sizes."), 
+                    Err(_) => println!("Please enter a valid number."),
+                }
+            }
+        };
+
         let marks = [Mark::Red, Mark::Yellow]; 
         let mut turn: usize = 0; 
-        let mut game = ConnectFour::new(); 
+        let mut game = ConnectFour::new(dim_rows, dim_cols, seq); 
     
         loop { 
             clear_screen();
@@ -72,7 +108,7 @@ fn main() {
     
                 match col_string.trim().parse::<usize>() {
                     Ok(col) => {
-                        if col > 0 && col < 8 && game.is_valid(col - 1) {
+                        if within_bounds(col, dim_cols) && game.is_valid(col - 1) {
                             break col;
                         } else {
                             println!("Please enter a valid column number."); 
@@ -90,7 +126,7 @@ fn main() {
                 game.display_board();
                 println!("\nPlayer {} wins.", marks[1 - (turn % 2)]);
                 break; 
-            } else if turn == 6*7 { // check tie
+            } else if turn == dim_rows*dim_cols { // check tie
                 clear_screen();
                 game.display_board();
                 println!("\nIt's a tie."); 
@@ -99,7 +135,7 @@ fn main() {
         }
 
         loop {
-            print_flush!("Would you like to play again? (y/n)?: "); 
+            print_flush!("Would you like to play again? (y/n): "); 
             let mut again_choice = String::new();
             io::stdin().read_line(&mut again_choice).expect("Failed to read line."); 
 
