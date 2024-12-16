@@ -55,6 +55,21 @@ fn get_dimensions() -> (usize, usize) {
     (dim_rows, dim_cols)
 }
 
+fn get_seq(dim_rows: usize, dim_cols: usize) -> usize {
+    loop { 
+        print_flush!("Number of tokens to be connected: "); 
+        let mut seq_string = String::new(); 
+        std::io::stdin().read_line(&mut seq_string).expect("Failed to read line."); 
+
+        match seq_string.trim().parse::<usize>() {
+            Ok(seq) if seq < 3 => println!("Sequence size must be at least 3."), 
+            Ok(seq) if seq <= dim_rows && seq <= dim_cols => break seq, 
+            Ok(_) => println!("Sequence size cannot be more than the grid sizes."), 
+            Err(_) => println!("Please enter a valid number."),
+        }
+    }
+}
+
 fn main() {
     use std::io; 
 
@@ -73,20 +88,7 @@ fn main() {
         };
 
         let (dim_rows, dim_cols) = if mode == 1 { (6, 7) } else { get_dimensions() };
-        let seq: usize = if mode == 1 { 4 } else {
-            loop { 
-                print_flush!("Number of tokens to be connected: "); 
-                let mut seq_string = String::new(); 
-                io::stdin().read_line(&mut seq_string).expect("Failed to read line."); 
-
-                match seq_string.trim().parse::<usize>() {
-                    Ok(seq) if seq < 3 => println!("Sequence size must be at least 3."), 
-                    Ok(seq) if seq <= dim_rows && seq <= dim_cols => break seq, 
-                    Ok(_) => println!("Sequence size cannot be more than the grid sizes."), 
-                    Err(_) => println!("Please enter a valid number."),
-                }
-            }
-        };
+        let seq: usize = if mode == 1 { 4 } else { get_seq(dim_rows, dim_cols) };
 
         let marks = [Mark::Red, Mark::Yellow]; 
         let mut turn: usize = 0; 
