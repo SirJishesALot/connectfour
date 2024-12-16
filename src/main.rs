@@ -105,13 +105,8 @@ fn main() {
                 io::stdin().read_line(&mut col_string).expect("Failed to read line."); 
     
                 match col_string.trim().parse::<usize>() {
-                    Ok(col) => {
-                        if col > 0 && game.is_valid(col - 1) {
-                            break col;
-                        } else {
-                            println!("Please enter a valid column number."); 
-                        }
-                    }
+                    Ok(col) if col > 0 && game.is_valid(col - 1) => break col, 
+                    Ok(_) => println!("Please enter a valid column number."), 
                     Err(_) => println!("Please enter a number."),
                 }
             };
@@ -147,5 +142,4 @@ fn main() {
             }
         }
     }
-    
 }
