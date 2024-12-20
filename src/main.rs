@@ -44,43 +44,50 @@ fn display_menu() {
 
 fn get_dimensions() -> (usize, usize) {
     use std::io; 
+    clear_line();
+
+    let position = cursor::position().unwrap(); 
     let dim_rows: usize = loop {
-        print_flush!("Number of rows: "); 
+        print_flush!("Number of {}: ", "rows".bold()); 
         let mut dim_m_string = String::new(); 
         io::stdin().read_line(&mut dim_m_string).expect("Failed to read line.");
 
         match dim_m_string.trim().parse::<usize>() {
             Ok(m) if m > 2 => break m,
-            Ok(_) => println!("Minimum 3 rows required."), 
-            Err(_) => println!("Please enter a valid number."),
+            Ok(_) => error_msg("Minimum 3 rows required", position), 
+            Err(_) => error_msg("Please enter a valid number.", position),
         }
     };
 
+    clear_line();
+    let position = cursor::position().unwrap(); 
     let dim_cols: usize = loop {
-        print_flush!("Number of columns: ");
+        print_flush!("Number of {}: ", "columns".bold());
         let mut dim_n_string = String::new(); 
         io::stdin().read_line(&mut dim_n_string).expect("Failed to read line."); 
 
         match dim_n_string.trim().parse::<usize>() {
             Ok(n) if n > 2  => break n, 
-            Ok(_) => println!("Minimum 3 columns required."), 
-            Err(_) => println!("Please enter a valid number."),
+            Ok(_) => error_msg("Minimum 3 columns required.", position), 
+            Err(_) => error_msg("Please enter a valid number.", position),
         }
     };
     (dim_rows, dim_cols)
 }
 
 fn get_seq(dim_rows: usize, dim_cols: usize) -> usize {
+    clear_line();
+    let position = cursor::position().unwrap(); 
     loop { 
         print_flush!("Number of tokens to be connected: "); 
         let mut seq_string = String::new(); 
         std::io::stdin().read_line(&mut seq_string).expect("Failed to read line."); 
 
         match seq_string.trim().parse::<usize>() {
-            Ok(seq) if seq < 3 => println!("Sequence size must be at least 3."), 
+            Ok(seq) if seq < 3 => error_msg("Sequence size must be at least 3.", position), 
             Ok(seq) if seq <= dim_rows && seq <= dim_cols => break seq, 
-            Ok(_) => println!("Sequence size cannot be more than the grid sizes."), 
-            Err(_) => println!("Please enter a valid number."),
+            Ok(_) => error_msg("Sequence size cannot be more than the grid sizes.", position), 
+            Err(_) => error_msg("Please enter a valid number.", position),
         }
     }
 }
@@ -92,13 +99,14 @@ fn main() {
         clear_screen();
         display_menu();
 
+        let position = cursor::position().unwrap(); 
         let mode: u8 = loop{
             let mut mode_string = String::new(); 
             io::stdin().read_line(&mut mode_string).expect("Failed to read line."); 
 
             match mode_string.trim().parse::<u8>() {
                 Ok(choice) if choice == 1 || choice == 2 => break choice, 
-                Ok(_) | Err(_) => println!("Please choose a valid option."),
+                Ok(_) | Err(_) => error_msg("Please choose a valid option.", position),
             }
         };
 
@@ -113,7 +121,8 @@ fn main() {
             clear_screen();
             game.display_board(); 
             println!("\nIt's Player {}'s turn.", marks[turn % 2]); 
-    
+            
+            let position = cursor::position().unwrap(); 
             let col = loop {
                 print_flush!("Enter a column: "); 
                 let mut col_string = String::new(); 
@@ -121,8 +130,8 @@ fn main() {
     
                 match col_string.trim().parse::<usize>() {
                     Ok(col) if col > 0 && game.is_valid(col - 1) => break col, 
-                    Ok(_) => println!("Please enter a valid column number."), 
-                    Err(_) => println!("Please enter a number."),
+                    Ok(_) => error_msg("Please enter a valid column number.", position), 
+                    Err(_) => error_msg("Please enter a valid number.", position),
                 }
             };
 
@@ -142,6 +151,7 @@ fn main() {
             }
         }
 
+        let position = cursor::position().unwrap(); 
         loop {
             print_flush!("Would you like to play again? (y/n): "); 
             let mut again_choice = String::new();
@@ -153,7 +163,11 @@ fn main() {
                     println!("Thanks for playing."); 
                     break 'main;
                 },
-                _ => continue,
+                _ => {
+                    move_cursor(position);
+                    clear_line();
+                    continue; 
+                },
             }
         }
     }
