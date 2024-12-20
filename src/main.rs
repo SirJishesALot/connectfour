@@ -1,7 +1,8 @@
 mod connectfour;
 
+use colored::*; 
 use connectfour::{ConnectFour, Mark};
-use termion::{clear, cursor}; 
+use crossterm::{execute, terminal, cursor}; 
 
 macro_rules! print_flush {
     ($($arg:tt)*) => {
@@ -13,18 +14,32 @@ macro_rules! print_flush {
     };
 }
 
+fn error_msg(message: &str, position: (u16, u16)) {
+    clear_line();
+    println!("{}", message.red()); 
+    move_cursor(position);
+    clear_line(); 
+}
+
+fn move_cursor(position: (u16, u16)) {
+    execute!(std::io::stdout(), cursor::MoveTo(position.0, position.1)).unwrap();
+}
+
+fn clear_line() {
+    execute!(std::io::stdout(), terminal::Clear(terminal::ClearType::CurrentLine)).unwrap(); 
+}
+
+fn clear_screen() {
+    use std::io; 
+    execute!(io::stdout(), terminal::Clear(terminal::ClearType::All)).unwrap(); 
+    move_cursor((0, 0));
+}
+
 fn display_menu() {
     println!("Welcome to connect four!"); 
     println!("Select the game mode you'd like to play:");
     println!("  1. Original. (6x7 grid. Connect 4 tokens to win)"); 
     println!("  2. Custom. (Select your own grid size and required number of connected tokens to win)"); 
-}
-
-fn clear_screen() {
-    use std::io::Write;
-    print!("{}", clear::All); 
-    print!("{}", cursor::Goto(1, 1));
-    std::io::stdout().flush().unwrap();
 }
 
 fn get_dimensions() -> (usize, usize) {
