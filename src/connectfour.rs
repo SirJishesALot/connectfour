@@ -79,7 +79,7 @@ impl ConnectFour {
     fn check_cols(&mut self, mark: &Mark) -> bool {
         for col in 0..self.dim_cols {
             for row in 0..=(self.dim_rows - self.seq) {
-                if Self::is_vertical_match(self, row, col, mark) { return true; }
+                if self.is_vertical_match(row, col, mark) { return true; }
             }
         } false 
     }
@@ -114,7 +114,7 @@ impl ConnectFour {
                 }
             }
         }
-        Self::check_cols(self, &mark) || Self::check_diagonals(self, &mark)
+        self.check_cols(&mark) || self.check_diagonals(&mark)
     }
 
     pub fn update_board(&mut self, col: usize, mark: Mark)  {
