@@ -1,6 +1,6 @@
 mod connectfour;
 
-use colored::*; 
+use colored::*;
 use connectfour::{ConnectFour, Mark};
 use crossterm::{execute, terminal, cursor}; 
 
