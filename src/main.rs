@@ -30,8 +30,7 @@ fn clear_line() {
 }
 
 fn clear_screen() {
-    use std::io; 
-    execute!(io::stdout(), terminal::Clear(terminal::ClearType::All)).unwrap(); 
+    execute!(std::io::stdout(), terminal::Clear(terminal::ClearType::All)).unwrap(); 
     move_cursor((0, 0));
 }
 
