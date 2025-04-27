@@ -51,9 +51,7 @@ impl ConnectFour {
     }
 
     fn print_col_nums(col_size: usize) {
-        for col in 1..=col_size {
-            print!(" {}", col);
-        }
+        (1..=col_size).for_each(|col| print!(" {}", col));
         print!("\n");
     }
 
