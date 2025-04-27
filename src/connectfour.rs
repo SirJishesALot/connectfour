@@ -114,14 +114,7 @@ impl ConnectFour {
     }
 
     pub fn update_board(&mut self, col: usize, mark: Mark)  {
-        let mut row: usize = self.dim_rows - 1; 
-
-        for i in 0..(self.dim_rows - 1) {
-            if self.board[i + 1][col] != Mark::Empty {
-                row = i; 
-                break; 
-            }
-        }
+        let row = (0..self.dim_rows).rev().find(|&row| self.board[row][col] == Mark::Empty).unwrap();
         self.board[row][col] = mark;
     }
 
