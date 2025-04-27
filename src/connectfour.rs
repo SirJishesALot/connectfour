@@ -57,13 +57,13 @@ impl ConnectFour {
 
     pub fn display_board(&self) {
         Self::print_col_nums(self.dim_cols); 
-        for i in 0..self.dim_rows {
-            print!("|");
-            for j in 0..self.dim_cols - 1 {
-                print!("{} ", self.board[i][j]); 
-            }
-            print!("{}|\n", self.board[i][self.dim_cols - 1]); 
-        }
+        (0..self.dim_rows).for_each(|row| {
+            print!("|"); 
+            (0..self.dim_cols - 1).for_each(|col| {
+                print!("{} ", self.board[row][col]); 
+            });
+            print!("{}|\n", self.board[row][self.dim_cols - 1]);
+        });
         Self::print_col_nums(self.dim_cols); 
     }
 
