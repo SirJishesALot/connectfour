@@ -75,11 +75,9 @@ impl ConnectFour {
     }
 
     fn check_cols(&mut self, mark: &Mark) -> bool {
-        for col in 0..self.dim_cols {
-            for row in 0..=(self.dim_rows - self.seq) {
-                if self.is_vertical_match(row, col, mark) { return true; }
-            }
-        } false 
+        (0..self.dim_cols).any(|col| {
+            (0..=(self.dim_rows - self.seq)).any(|row| self.is_vertical_match(row, col, mark))
+        })
     }
 
     fn check_diagonals(&mut self, mark: &Mark) -> bool {
